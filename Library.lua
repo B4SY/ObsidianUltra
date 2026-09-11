@@ -14742,6 +14742,7 @@ function Library:CreateWindow(WindowInfo)
     local TitleHolder
     local WindowTitle
     local WindowIcon
+    local TagsHolder
     local RightWrapper
     local SearchBox
     local CurrentTabInfo
@@ -15030,6 +15031,20 @@ function Library:CreateWindow(WindowInfo)
             Text = WindowInfo.Title,
             TextSize = 20,
             Parent = TitleHolder,
+        })
+
+        --// Tags holder next to title (AddTag)
+        TagsHolder = New("Frame", {
+            AutomaticSize = Enum.AutomaticSize.X,
+            BackgroundTransparency = 1,
+            Size = UDim2.fromOffset(0, 20),
+            Parent = TitleHolder,
+        })
+        New("UIListLayout", {
+            FillDirection = Enum.FillDirection.Horizontal,
+            VerticalAlignment = Enum.VerticalAlignment.Center,
+            Padding = UDim.new(0, 4),
+            Parent = TagsHolder,
         })
 
         --// Top Right Bar \\--
@@ -15966,6 +15981,101 @@ function Library:CreateWindow(WindowInfo)
 
         WindowTitle.Text = title
         WindowInfo.Title = title
+    end
+
+    --// Title-bar tag / badge (PREMIUM, version, etc.)
+    function Window:AddTag(Info)
+        if typeof(Info) == "string" then
+            Info = { Text = Info }
+        end
+        Info = typeof(Info) == "table" and Info or {}
+
+        local Text = tostring(Info.Text or Info.Name or "TAG")
+        local Bg = Info.BackgroundColor or Info.Color or "AccentColor"
+        local Fg = Info.TextColor or "FontColor"
+        local TextSize = tonumber(Info.TextSize) or 11
+        local Padding = tonumber(Info.Padding) or 8
+        local Order = tonumber(Info.Order) or 0
+
+        local function ResolveColor(Value, Fallback)
+            if typeof(Value) == "Color3" then
+                return Value
+            end
+            if typeof(Value) == "string" then
+                return GetSchemeValue(Value) or Library.Scheme[Value] or Fallback
+            end
+            return Fallback
+        end
+
+        local BgColor = ResolveColor(Bg, Library.Scheme.AccentColor)
+        local FgColor = ResolveColor(Fg, Library.Scheme.FontColor)
+
+        local Tag = New("TextButton", {
+            AutomaticSize = Enum.AutomaticSize.X,
+            BackgroundColor3 = BgColor,
+            BackgroundTransparency = Info.BackgroundTransparency or 0.1,
+            LayoutOrder = Order,
+            Size = UDim2.fromOffset(0, 18),
+            Text = Text,
+            TextColor3 = FgColor,
+            TextSize = TextSize,
+            AutoButtonColor = false,
+            Parent = TagsHolder,
+        })
+        New("UIPadding", {
+            PaddingLeft = UDim.new(0, Padding),
+            PaddingRight = UDim.new(0, Padding),
+            Parent = Tag,
+        })
+        table.insert(
+            Library.PillCorners,
+            New("UICorner", {
+                CornerRadius = UDim.new(1, 0),
+                Parent = Tag,
+            })
+        )
+
+        if typeof(Bg) == "string" then
+            Library:AddToRegistry(Tag, { BackgroundColor3 = Bg })
+        end
+        if typeof(Fg) == "string" then
+            Library:AddToRegistry(Tag, { TextColor3 = Fg })
+        end
+
+        function Tag:SetText(NewText)
+            Tag.Text = tostring(NewText or "")
+        end
+
+        function Tag:SetVisible(Visible)
+            Tag.Visible = Visible == true
+        end
+
+        function Tag:SetBackgroundColor(Color)
+            local Resolved = ResolveColor(Color, Library.Scheme.AccentColor)
+            Tag.BackgroundColor3 = Resolved
+            if typeof(Color) == "string" then
+                Library:AddToRegistry(Tag, { BackgroundColor3 = Color })
+            else
+                Library:RemoveFromRegistry(Tag)
+            end
+        end
+
+        function Tag:SetTextColor(Color)
+            local Resolved = ResolveColor(Color, Library.Scheme.FontColor)
+            Tag.TextColor3 = Resolved
+        end
+
+        function Tag:SetOrder(NewOrder)
+            Tag.LayoutOrder = tonumber(NewOrder) or 0
+        end
+
+        function Tag:Remove()
+            if Tag and Tag.Parent then
+                Tag:Destroy()
+            end
+        end
+
+        return Tag
     end
 
     --// Ported from Sizsense: user profile card at bottom of sidebar
