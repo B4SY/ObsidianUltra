@@ -475,7 +475,7 @@ local Templates = {
         FullscreenBackgroundImage = nil,
         FullscreenBackgroundImageTransparency = 0.2,
 
-        Font = Enum.Font.Code,
+        Font = Enum.Font.SourceSans,
         ToggleKeybind = Enum.KeyCode.RightControl,
 
         ShowMobileButtons = true,
