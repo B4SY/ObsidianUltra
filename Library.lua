@@ -579,7 +579,7 @@ local Templates = {
         WindowHeight = 275,
 
         ContentWidth = 450,
-        SidebarWidth = 250,
+        SidebarWidth = 100,
     },
     Toggle = {
         Text = "Toggle",
